@@ -39,7 +39,7 @@ dependencies {
                 '/path/to/local/file3.jar')
 }
 
-version = "1.0.0"
+// version = "1.0.0"
 
 // sourceCompatibility = 1.7
 // targetCompatibility = 1.7
