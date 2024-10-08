@@ -48,7 +48,10 @@ def set_secret(target_object, property_name, secret):
 
 def set_properties(target_object, task_properties_as_json):
     for key in task_properties_as_json:
-        target_object.setProperty(key, task_properties_as_json[key])
+        if type(task_properties_as_json[key]) is list:
+            target_object.setProperty(key, [json.dumps(item) for item in task_properties_as_json[key]])
+        else:
+            target_object.setProperty(key, task_properties_as_json[key])
 
 print "Executing xlr/XlrTaskRepeater.py v@project.version@"
 
