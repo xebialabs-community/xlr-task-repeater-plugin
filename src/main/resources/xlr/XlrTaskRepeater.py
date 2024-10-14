@@ -49,7 +49,7 @@ def set_secret(target_object, property_name, secret):
 def set_properties(target_object, task_properties_as_json):
     for key in task_properties_as_json:
         if type(task_properties_as_json[key]) is list:
-            target_object.setProperty(key, [json.dumps(item) for item in task_properties_as_json[key]])
+            target_object.setProperty(key, [json.dumps(item).strip('"') for item in task_properties_as_json[key]])
         else:
             target_object.setProperty(key, task_properties_as_json[key])
 
@@ -64,7 +64,9 @@ for idx, entry in enumerate(taskProperties):
     new_task.title = "%s %d" % (taskTitle, idx + 1)
     new_task = taskApi.addTask(current_container_id, new_task)
     task_properties_as_json = json.loads(entry)
-    python_script = new_task.getProperty('pythonScript')
+    python_script = None
+    if new_task.hasProperty('pythonScript'):
+        python_script = new_task.getProperty('pythonScript')
     if taskPropertyNameForConnection and connection:
         set_connection(python_script or new_task, taskPropertyNameForConnection, connection)
     if taskPropertyNameForSecret and taskSecret:
