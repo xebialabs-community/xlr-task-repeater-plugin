@@ -53,16 +53,36 @@ def set_properties(target_object, task_properties_as_json):
         else:
             target_object.setProperty(key, task_properties_as_json[key])
 
+def get_task_index(p_container, p_task):
+    for i, t in enumerate(p_container.tasks):
+        if t.id == p_task.id:
+            return i
+    return None
+
+
 print "Executing xlr/XlrTaskRepeater.py v@project.version@"
 
 connection = get_connection(taskConnectionType, taskConnectionName, taskConnectionId)
 
-current_container_id = getCurrentTask().getContainer().getId()
+this_task = getCurrentTask()
+this_container = this_task.getContainer()
+
+insert_position = None
+
+if addSequentialGroup:
+    seq_group = taskApi.newTask("xlrelease.SequentialGroup")
+    seq_group.title = "%s sequential group" % taskTitle
+    seq_group = phaseApi.addTask(this_container.id, seq_group, get_task_index(this_container, this_task) + insertAfter + 1)
+    target_container_id = seq_group.id
+    insert_position = 0
+else:
+    target_container_id = this_container.id
+    insert_position = get_task_index(this_container, this_task) + insertAfter + 1
 
 for idx, entry in enumerate(taskProperties):
     new_task = taskApi.newTask(taskType)
     new_task.title = "%s %d" % (taskTitle, idx + 1)
-    new_task = taskApi.addTask(current_container_id, new_task)
+    new_task = phaseApi.addTask(target_container_id, new_task, insert_position + idx)
     task_properties_as_json = json.loads(entry)
     python_script = None
     if new_task.hasProperty('pythonScript'):

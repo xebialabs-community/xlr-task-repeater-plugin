@@ -16,6 +16,8 @@
            xsi:schemaLocation="http://www.xebialabs.com/deployit/synthetic synthetic.xsd">
 
     <type type="xlr.XlrTaskRepeater" extends="xlrelease.PythonScript">
+        <property name="addSequentialGroup" category="input" kind="boolean" default="false" />
+        <property name="insertAfter" category="input" kind="integer" default="0" />
         <property name="taskType" category="input" required="false" />
         <property name="taskTitle" category="input" required="false" />
         <property name="taskPropertyNameForConnection" category="input" required="false" />
