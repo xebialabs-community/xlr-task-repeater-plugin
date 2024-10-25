@@ -20,6 +20,7 @@
         <property name="insertAfter" category="input" kind="integer" default="0" />
         <property name="taskType" category="input" required="false" />
         <property name="taskTitle" category="input" required="false" />
+        <property name="taskTitleDiscriminator" category="input" required="false" />
         <property name="taskPropertyNameForConnection" category="input" required="false" />
         <property name="taskConnectionType" category="input" required="false" />
         <property name="taskConnectionName" category="input" required="false" />

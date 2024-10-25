@@ -11,6 +11,7 @@
 # properties common to all tasks to be added:
 # taskType
 # taskTitle
+# taskTitleDiscriminator
 # taskPropertyNameForConnection
 # taskConnectionType
 # taskConnectionName
@@ -59,6 +60,18 @@ def get_task_index(p_container, p_task):
             return i
     return None
 
+def apply_task_title_discriminator(title, discriminator, properties_json):
+    value = properties_json
+    parts = discriminator.split('.')
+    for part in parts:
+        if type(value) is list:
+            if part.isdigit():
+                value = value[int(part)]
+            else:
+                raise Exception("List index must be a positive integer")
+        else:
+            value = value[part]
+    return "%s %s" % (title, value)
 
 print "Executing xlr/XlrTaskRepeater.py v@project.version@"
 
@@ -80,10 +93,13 @@ else:
     insert_position = get_task_index(this_container, this_task) + insertAfter + 1
 
 for idx, entry in enumerate(taskProperties):
-    new_task = taskApi.newTask(taskType)
-    new_task.title = "%s %d" % (taskTitle, idx + 1)
-    new_task = phaseApi.addTask(target_container_id, new_task, insert_position + idx)
     task_properties_as_json = json.loads(entry)
+    new_task = taskApi.newTask(taskType)
+    if taskTitleDiscriminator:
+        new_task.title = apply_task_title_discriminator(taskTitle, taskTitleDiscriminator, task_properties_as_json)
+    else:
+        new_task.title = "%s %d" % (taskTitle, idx + 1)
+    new_task = phaseApi.addTask(target_container_id, new_task, insert_position + idx)
     python_script = None
     if new_task.hasProperty('pythonScript'):
         python_script = new_task.getProperty('pythonScript')
