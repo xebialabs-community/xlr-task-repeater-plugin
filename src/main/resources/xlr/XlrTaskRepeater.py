@@ -44,8 +44,18 @@ def get_connection(connection_type, connection_name, connection_id):
 def set_connection(target_object, property_name, connection):
     target_object.setProperty(property_name, connection)
 
+def is_password_property(target_object, property_name):
+    input_properties = target_object._delegate.getInputProperties()
+    for p in input_properties:
+        if p.name == property_name and p.isPassword():
+            return True
+    return False
+
 def set_secret(target_object, property_name, secret):
-    target_object.setProperty(property_name, secret)
+    if is_password_property(target_object, property_name):
+        target_object.setProperty(property_name, secret)
+    else:
+        raise Exception("Cannot set secret value in non-password property %s" % property_name)
 
 def set_properties(target_object, task_properties_as_json):
     for key in task_properties_as_json:
