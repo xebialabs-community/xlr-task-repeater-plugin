@@ -57,10 +57,17 @@ def set_secret(target_object, property_name, secret):
     else:
         raise Exception("Cannot set secret value in non-password property %s" % property_name)
 
-def set_properties(target_object, task_properties_as_json):
+def set_gate_dependencies(gate_task, dependencies):
+    for d in dependencies:
+        taskApi.addDependency(gate_task.id, d['targetId'])
+
+def set_properties(target_object, task_properties_as_json, taskType):
     for key in task_properties_as_json:
         if type(task_properties_as_json[key]) is list:
-            target_object.setProperty(key, [json.dumps(item).strip('"') for item in task_properties_as_json[key]])
+            if key == 'dependencies' and taskType == 'xlrelease.GateTask':
+                set_gate_dependencies(target_object, task_properties_as_json[key])
+            else:
+                target_object.setProperty(key, [json.dumps(item).strip('"') for item in task_properties_as_json[key]])
         else:
             target_object.setProperty(key, task_properties_as_json[key])
 
@@ -117,7 +124,7 @@ for idx, entry in enumerate(taskProperties):
         set_connection(python_script or new_task, taskPropertyNameForConnection, connection)
     if taskPropertyNameForSecret and taskSecret:
         set_secret(python_script or new_task, taskPropertyNameForSecret, taskSecret)
-    set_properties(python_script or new_task, task_properties_as_json)
+    set_properties(python_script or new_task, task_properties_as_json, taskType)
     taskApi.updateTask(new_task.id, new_task)
 
 print "Task repeater has completed successfully."
