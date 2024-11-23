@@ -24,7 +24,7 @@
 
 import json
 
-def get_connection(connection_type, connection_name, connection_id):
+def get_connection(connection_type, connection_name, connection_search_folder_id, connection_search_folder_only, connection_id):
     if not (connection_type or connection_name or connection_id):
         return None
     if (connection_type or connection_name) and connection_id:
@@ -35,7 +35,7 @@ def get_connection(connection_type, connection_name, connection_id):
             return connection
         else:
             raise Exception("Connection %s not found" % connection_id)
-    connection_list = configurationApi.searchByTypeAndTitle(connection_type, connection_name)
+    connection_list = configurationApi.searchByTypeAndTitle(connection_type, connection_name, connection_search_folder_id, connection_search_folder_only,)
     if len(connection_list) == 1:
         return connection_list[0]
     else:
@@ -61,15 +61,21 @@ def set_gate_dependencies(gate_task, dependencies):
     for d in dependencies:
         taskApi.addDependency(gate_task.id, d['targetId'])
 
-def set_properties(target_object, task_properties_as_json, taskType):
+def set_properties(target_object, task_properties_as_json, task_type):
     for key in task_properties_as_json:
         if type(task_properties_as_json[key]) is list:
-            if key == 'dependencies' and taskType == 'xlrelease.GateTask':
+            if key == 'dependencies' and task_type == 'xlrelease.GateTask':
                 set_gate_dependencies(target_object, task_properties_as_json[key])
             else:
-                target_object.setProperty(key, [json.dumps(item).strip('"') for item in task_properties_as_json[key]])
+                if target_object.hasProperty(key):
+                    target_object.setProperty(key, [json.dumps(item).strip('"') for item in task_properties_as_json[key]])
+                else:
+                    print "Warning: Ignoring input key %s because task type %s does not have property %s" % (key, task_type, key)
         else:
-            target_object.setProperty(key, task_properties_as_json[key])
+            if target_object.hasProperty(key):
+                target_object.setProperty(key, task_properties_as_json[key])
+            else:
+                print "Warning: Ignoring input key %s because task type %s does not have property %s" % (key, task_type, key)
 
 def get_task_index(p_container, p_task):
     for i, t in enumerate(p_container.tasks):
@@ -92,20 +98,29 @@ def apply_task_title_discriminator(title, discriminator, properties_json):
 
 print "Executing xlr/XlrTaskRepeater.py v@project.version@"
 
-connection = get_connection(taskConnectionType, taskConnectionName, taskConnectionId)
+connection = get_connection(taskConnectionType, taskConnectionName, taskConnectionSearchFolderId, taskConnectionSearchFolderOnly, taskConnectionId)
 
 this_task = getCurrentTask()
 this_container = this_task.getContainer()
 
+target_container_id = None
 insert_position = None
 
-if addSequentialGroup:
+if str(insertGroup) == 'PARALLEL':
+    par_group = taskApi.newTask("xlrelease.ParallelGroup")
+    par_group.title = "%s parallel group" % taskTitle
+    par_group = phaseApi.addTask(this_container.id, par_group, get_task_index(this_container, this_task) + insertAfter + 1)
+    target_container_id = par_group.id
+    insert_position = 0
+
+if str(insertGroup) == 'SEQUENTIAL':
     seq_group = taskApi.newTask("xlrelease.SequentialGroup")
     seq_group.title = "%s sequential group" % taskTitle
     seq_group = phaseApi.addTask(this_container.id, seq_group, get_task_index(this_container, this_task) + insertAfter + 1)
     target_container_id = seq_group.id
     insert_position = 0
-else:
+
+if str(insertGroup).upper() == 'NONE':
     target_container_id = this_container.id
     insert_position = get_task_index(this_container, this_task) + insertAfter + 1
 
