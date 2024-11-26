@@ -61,11 +61,30 @@ def set_gate_dependencies(gate_task, dependencies):
     for d in dependencies:
         taskApi.addDependency(gate_task.id, d['targetId'])
 
+def get_variable(v, release_id):
+  for var in releaseApi.getVariables(release_id):
+    if var.key == v:
+      return var
+  return None
+
+def set_user_input_task_variables(user_input_task, variables):
+    release_id = user_input_task.getRelease().id
+    user_input_variables = []
+    for v in variables:
+        var = get_variable(v, release_id)
+        if var:
+            user_input_variables.append(var)
+    if user_input_variables:
+        user_input_task.variables = user_input_variables
+        taskApi.updateTask(user_input_task)
+
 def set_properties(target_object, task_properties_as_json, task_type):
     for key in task_properties_as_json:
         if type(task_properties_as_json[key]) is list:
             if key == 'dependencies' and task_type == 'xlrelease.GateTask':
                 set_gate_dependencies(target_object, task_properties_as_json[key])
+            elif key == 'variables' and task_type == 'xlrelease.UserInputTask':
+                set_user_input_task_variables(target_object, task_properties_as_json(key))
             else:
                 if target_object.hasProperty(key):
                     target_object.setProperty(key, [json.dumps(item).strip('"') for item in task_properties_as_json[key]])
