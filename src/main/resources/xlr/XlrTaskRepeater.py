@@ -84,7 +84,7 @@ def set_properties(target_object, task_properties_as_json, task_type):
             if key == 'dependencies' and task_type == 'xlrelease.GateTask':
                 set_gate_dependencies(target_object, task_properties_as_json[key])
             elif key == 'variables' and task_type == 'xlrelease.UserInputTask':
-                set_user_input_task_variables(target_object, task_properties_as_json(key))
+                set_user_input_task_variables(target_object, task_properties_as_json[key])
             else:
                 if target_object.hasProperty(key):
                     target_object.setProperty(key, [json.dumps(item).strip('"') for item in task_properties_as_json[key]])
