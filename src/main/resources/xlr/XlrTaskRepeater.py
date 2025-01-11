@@ -1,5 +1,5 @@
 #
-# Copyright 2024 XEBIALABS
+# Copyright 2025 XEBIALABS
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 #
@@ -150,6 +150,8 @@ for idx, entry in enumerate(taskProperties):
         new_task.title = apply_task_title_discriminator(taskTitle, taskTitleDiscriminator, task_properties_as_json)
     else:
         new_task.title = "%s %d" % (taskTitle, idx + 1)
+    if taskOwner:
+        new_task.owner = taskOwner
     new_task = phaseApi.addTask(target_container_id, new_task, insert_position + idx)
     python_script = None
     if new_task.hasProperty('pythonScript'):
